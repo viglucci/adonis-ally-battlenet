@@ -13,11 +13,6 @@
     "battlenet",
     "blizzard"
   ],
-  "files": [
-    "Driver.js",
-    "ServiceProvider.js",
-    "LICENSE"
-  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
