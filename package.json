@@ -15,6 +15,7 @@
   ],
   "files": [
     "Driver.js",
+    "ServiceProvider.js",
     "LICENSE"
   ],
   "author": "",
