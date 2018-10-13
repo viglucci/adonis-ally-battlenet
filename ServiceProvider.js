@@ -1,5 +1,5 @@
 /*
-* adonis-auth
+* adonis-ally-battlenet
 *
 * (c) Kevin Viglucci <kviglucci@gmail.com>
 *
