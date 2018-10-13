@@ -25,13 +25,11 @@ class BattlenetDriver extends AllyOAuth2Scheme {
 
         super(config.clientId, config.clientSecret, config.headers);
 
-        this.config = config;
-
         /**
          * Oauth specific values to be used when creating the redirect
          * url or fetching user profile.
          */
-        this._scope = this._getInitialScopes(config.scope);
+        this._initial_scopes = this._getInitialScopes(config.scope);
         this._redirectUri = config.redirectUri;
         this._redirectUriOptions = _.merge({ response_type: 'code' }, config.options);
     }
@@ -62,7 +60,7 @@ class BattlenetDriver extends AllyOAuth2Scheme {
      * @return {String}
      */
     get baseUrl() {
-        return 'https://us.api.battle.net/oauth'
+        return 'https://us.battle.net/oauth'
     }
 
     /**
@@ -72,7 +70,7 @@ class BattlenetDriver extends AllyOAuth2Scheme {
      * @return {String} [description]
      */
     get authorizeUrl() {
-        return '/authorize'
+        return 'authorize'
     }
 
     /**
@@ -82,7 +80,7 @@ class BattlenetDriver extends AllyOAuth2Scheme {
      * @return {String}
      */
     get accessTokenUrl() {
-        return '/token'
+        return 'token'
     }
 
     /**
@@ -91,7 +89,7 @@ class BattlenetDriver extends AllyOAuth2Scheme {
      * @return {String}
      */
     get apiUrl() {
-        return 'https://us.api.battle.net/oauth'
+        return 'https://us.battle.net/oauth'
     }
 
     /**
@@ -106,7 +104,7 @@ class BattlenetDriver extends AllyOAuth2Scheme {
      * @private
      */
     _getInitialScopes(scopes) {
-        return _.size(scopes) ? scopes : ['account.public']
+        return _.size(scopes) ? scopes : ['account.public'];
     }
 
     /**
@@ -122,27 +120,33 @@ class BattlenetDriver extends AllyOAuth2Scheme {
      */
     async _getUserProfile(accessToken, fields) {
         const options = {
-            uri: `${this.apiUrl}/user`,
+            uri: `${this.apiUrl}/userinfo`,
             headers: {
                 'Authorization': accessToken ? 'Bearer ' + accessToken : undefined,
                 'Accept': 'application/json'
             },
             json: true
         };
-        const response = await request(options);
-        return response.body
+        return request(options);
     }
 
     /**
      * Returns the redirect url for a given provider.
      *
-     * @param  {Array} scope
+     * @param  {Array} scopes
      *
      * @return {String}
      */
-    async getRedirectUrl(scope) {
-        scope = _.size(scope) ? scope : this._scope;
-        return this.getUrl(this._redirectUri, scope, this._redirectUriOptions);
+    async getRedirectUrl(scopes) {
+        scopes = _.size(scopes) ? scopes : [];
+        const additionalScopes = _.size(this.scope) ? this.scope : []; // scopes added via driver.scope([])
+        const defaultOrConfiguredScopes = this._initial_scopes;
+        scopes = _.uniq(
+            scopes
+                .concat(defaultOrConfiguredScopes)
+                .concat(additionalScopes)
+        );
+        return this.getUrl(this._redirectUri, scopes, this._redirectUriOptions);
     }
 
     /**
@@ -181,7 +185,7 @@ class BattlenetDriver extends AllyOAuth2Scheme {
      * @return {Object}
      */
     async getUser(queryParams, fields) {
-        const code = queryParams.code
+        const code = queryParams.code;
 
         /**
          * Throw an exception when query string does not have
@@ -197,15 +201,15 @@ class BattlenetDriver extends AllyOAuth2Scheme {
 
         const userProfile = await this._getUserProfile(accessTokenResponse.accessToken, fields);
 
-        const user = new AllyUser()
+        const user = new AllyUser();
 
         user
             .setOriginal(userProfile)
             .setFields(
                 userProfile.id,
-                userProfile.battleTag,
                 null,
                 null,
+                userProfile.battletag,
                 null
             )
             .setToken(

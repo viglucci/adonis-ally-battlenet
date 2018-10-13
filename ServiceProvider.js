@@ -23,15 +23,12 @@ class AllyBattlenetServiceProvider extends ServiceProvider {
     * @return {void}
     */
     register() {
-        this.app.singleton('adonis-ally-battlenet', (app) => {
-            return Driver;
+        this.app.singleton('adonis-ally-battlenet', () => {
+            return this.app.make(Driver);
         });
-    }
 
-    boot() {
-        const implementation = use('adonis-ally-battlenet');
         this.app.extend('Adonis/Addons/Ally', 'battlenet', () => {
-            return this.app.make(implementation);
+            return this.app.use('adonis-ally-battlenet');
         });
     }
 }
